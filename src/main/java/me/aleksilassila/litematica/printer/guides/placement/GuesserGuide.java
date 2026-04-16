@@ -86,12 +86,33 @@ public class GuesserGuide extends GeneralPlacementGuide {
                             .getPlacementState(context); // FIXME torch shift clicks another torch and getPlacementState
                                                          // is the clicked block, which is true
 
-                    if (result != null
+                if (result != null
                             && (statesEqual(result, targetState) || correctChestPlacement(targetState, result))) {
                         contextCache = context;
                         return context;
                     }
                 }
+            }
+        }
+
+        if (Configs.AIR_PLACE.getBooleanValue() && !getRequiresSupport()) {
+            ItemStack requiredItem = getRequiredItem(player).orElse(ItemStack.EMPTY);
+            int slot = getRequiredItemStackSlot(player);
+            if (slot != -1) {
+                Direction side = Direction.UP;
+                Vec3d hitVec = Vec3d.ofCenter(state.blockPos).add(0, 0.5, 0);
+                BlockHitResult hitResult = new BlockHitResult(hitVec, side, state.blockPos, false);
+
+                Vec3d diff = hitVec.subtract(player.getEyePos());
+                float yaw = (float) (Math.atan2(diff.z, diff.x) * 180 / Math.PI) - 90;
+                float pitch = (float) -(Math.atan2(diff.y, Math.sqrt(diff.x * diff.x + diff.z * diff.z)) * 180 / Math.PI);
+
+                return new PrinterPlacementContext(player, hitResult, requiredItem, slot, null, false) {
+                    @Override
+                    public float getPlayerYaw() { return yaw; }
+                    @Override
+                    public float getPlayerPitch() { return pitch; }
+                };
             }
         }
 

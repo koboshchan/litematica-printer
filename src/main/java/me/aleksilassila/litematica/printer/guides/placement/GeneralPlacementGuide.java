@@ -47,7 +47,7 @@ public class GeneralPlacementGuide extends PlacementGuide {
     }
 
     private Optional<Direction> getValidSide(SchematicBlockState state) {
-        boolean printInAir = false; // LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue();
+        boolean airPlace = Configs.AIR_PLACE.getBooleanValue();
 
         List<Direction> sides = getPossibleSides();
 
@@ -55,22 +55,22 @@ public class GeneralPlacementGuide extends PlacementGuide {
             return Optional.empty();
         }
 
+        if (airPlace && !getRequiresSupport()) {
+            return Optional.of(Direction.UP);
+        }
+
         List<Direction> validSides = new ArrayList<>();
         for (Direction side : sides) {
-            if (printInAir && !getRequiresSupport()) {
-                return Optional.of(side);
-            } else {
-                SchematicBlockState neighborState = state.offset(side);
+            SchematicBlockState neighborState = state.offset(side);
 
-                if (getProperty(neighborState.currentState, SlabBlock.TYPE).orElse(null) == SlabType.DOUBLE) {
-                    validSides.add(side);
-                    continue;
-                }
-
-                if (canBeClicked(neighborState.world, neighborState.blockPos) && // Handle unclickable grass for example
-                        !neighborState.currentState.isReplaceable())
-                    validSides.add(side);
+            if (getProperty(neighborState.currentState, SlabBlock.TYPE).orElse(null) == SlabType.DOUBLE) {
+                validSides.add(side);
+                continue;
             }
+
+            if (canBeClicked(neighborState.world, neighborState.blockPos) && // Handle unclickable grass for example
+                    !neighborState.currentState.isReplaceable())
+                validSides.add(side);
         }
 
         for (Direction validSide : validSides) {
@@ -112,8 +112,13 @@ public class GeneralPlacementGuide extends PlacementGuide {
             Optional<Direction> lookDirection = getLookDirection();
             boolean requiresShift = getUseShift(state);
 
+            BlockPos clickPos = state.blockPos.offset(validSide.get());
+            if (Configs.AIR_PLACE.getBooleanValue() && !getRequiresSupport()) {
+                clickPos = state.blockPos;
+            }
+
             BlockHitResult blockHitResult = new BlockHitResult(hitVec.get(), validSide.get().getOpposite(),
-                    state.blockPos.offset(validSide.get()), false);
+                    clickPos, false);
 
             return new PrinterPlacementContext(player, blockHitResult, requiredItem.get(), requiredSlot,
                     lookDirection.orElse(null), requiresShift);

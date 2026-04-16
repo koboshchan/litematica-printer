@@ -72,8 +72,12 @@ abstract public class PlacementGuide extends Guide {
             return false;
 
         ItemPlacementContext ctx = getPlacementContext(player);
-        if (ctx == null || !ctx.canPlace())
+        if (ctx == null)
             return false;
+
+        if (!Configs.AIR_PLACE.getBooleanValue() && !ctx.canPlace())
+            return false;
+
         if (!Configs.REPLACE_FLUIDS_SOURCE_BLOCKS.getBooleanValue()
                 && getProperty(state.currentState, FluidBlock.LEVEL).orElse(1) == 0)
             return false;

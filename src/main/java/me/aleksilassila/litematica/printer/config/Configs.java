@@ -35,6 +35,10 @@ public class Configs
             "litematica-printer.config.generic.comment.interactBlocks")
             .translatedName("litematica-printer.config.generic.name.interactBlocks");
 
+    public static final ConfigBoolean AIR_PLACE = new ConfigBoolean("airPlace", false,
+            "litematica-printer.config.generic.comment.airPlace")
+            .translatedName("litematica-printer.config.generic.name.airPlace");
+
     public static ImmutableList<IConfigBase> getConfigList()
     {
         List<IConfigBase> list = new java.util.ArrayList<>(fi.dy.masa.litematica.config.Configs.Generic.OPTIONS);
@@ -45,6 +49,7 @@ public class Configs
         list.add(REPLACE_FLUIDS_SOURCE_BLOCKS);
         list.add(STRIP_LOGS);
         list.add(INTERACT_BLOCKS);
+        list.add(AIR_PLACE);
 
         return ImmutableList.copyOf(list);
     }

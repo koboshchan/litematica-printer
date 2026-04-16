@@ -96,8 +96,6 @@ public class GuesserGuide extends GeneralPlacementGuide {
         }
 
         if (Configs.AIR_PLACE.getBooleanValue() && !getRequiresSupport()) {
-            ItemStack requiredItem = getRequiredItem(player).orElse(ItemStack.EMPTY);
-            int slot = getRequiredItemStackSlot(player);
             if (slot != -1) {
                 Direction side = Direction.UP;
                 Vec3d hitVec = Vec3d.ofCenter(state.blockPos).add(0, 0.5, 0);

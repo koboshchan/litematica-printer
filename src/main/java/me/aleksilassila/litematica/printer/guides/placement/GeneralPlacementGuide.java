@@ -51,10 +51,6 @@ public class GeneralPlacementGuide extends PlacementGuide {
     private Optional<Direction> getValidSide(SchematicBlockState state) {
         List<Direction> sides = getPossibleSides();
 
-        if (sides.isEmpty()) {
-            return Optional.empty();
-        }
-
         List<Direction> validSides = new ArrayList<>();
         for (Direction side : sides) {
             SchematicBlockState neighborState = state.offset(side);
@@ -121,8 +117,27 @@ public class GeneralPlacementGuide extends PlacementGuide {
             Direction hitSide = side.getOpposite();
 
             if (Configs.AIR_PLACE.getBooleanValue() && !getRequiresSupport() && state.world.getBlockState(clickPos).isReplaceable()) {
+                Printer.printDebug("AirPlace triggered for {} at {}", targetState.getBlock(), state.blockPos);
                 clickPos = state.blockPos;
                 hitSide = side;
+
+                if (lookDirection.isEmpty()) {
+                    Vec3d diff = hitVec.get().subtract(player.getEyePos());
+                    double diffX = diff.x;
+                    double diffY = diff.y;
+                    double diffZ = diff.z;
+                    double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
+                    float yaw = (float) (Math.atan2(diffZ, diffX) * 180 / Math.PI) - 90;
+                    float pitch = (float) -(Math.atan2(diffY, diffXZ) * 180 / Math.PI);
+
+                    return new PrinterPlacementContext(player, new BlockHitResult(hitVec.get(), hitSide, clickPos, false),
+                            requiredItem.get(), requiredSlot, null, requiresShift) {
+                        @Override
+                        public float getPlayerYaw() { return yaw; }
+                        @Override
+                        public float getPlayerPitch() { return pitch; }
+                    };
+                }
             }
 
             BlockHitResult blockHitResult = new BlockHitResult(hitVec.get(), hitSide,

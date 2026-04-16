@@ -69,8 +69,8 @@ public class PrepareAction extends Action {
         }
 
         if (modifyPitch || modifyYaw) {
-            float yaw = modifyYaw ? this.yaw : player.getYaw();
-            float pitch = modifyPitch ? this.pitch : player.getPitch();
+            float yaw = modifyYaw ? this.yaw : context.getPlayerYaw();
+            float pitch = modifyPitch ? this.pitch : context.getPlayerPitch();
 
             PlayerMoveC2SPacket packet = new PlayerMoveC2SPacket.Full(player.getX(), player.getY(), player.getZ(), yaw,
                     pitch, player.isOnGround());

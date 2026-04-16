@@ -91,7 +91,7 @@ abstract public class PlacementGuide extends Guide {
                 return false;
             return !(currentState.getBlock() instanceof FluidBlock) || canPlaceInWater(resultState);
         } else {
-            return false;
+            return Configs.AIR_PLACE.getBooleanValue();
         }
     }
 

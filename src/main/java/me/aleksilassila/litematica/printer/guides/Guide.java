@@ -33,10 +33,11 @@ abstract public class Guide extends BlockHelperImpl {
     protected int getSlotWithItem(ClientPlayerEntity player, ItemStack itemStack) {
         PlayerInventory inventory = player.getInventory();
 
+        if (itemStack.isEmpty()) {
+            return inventory.getSelectedSlot();
+        }
+
         for (int i = 0; i < inventory.getMainStacks().size(); ++i) {
-            if (itemStack.isEmpty() && inventory.getMainStacks().get(i).isOf(itemStack.getItem())) {
-                return i;
-            }
             if (!inventory.getMainStacks().get(i).isEmpty() && ItemStack.areItemsEqual(inventory.getMainStacks().get(i), itemStack)) {
                 return i;
             }

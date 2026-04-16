@@ -79,8 +79,10 @@ abstract public class PlacementGuide extends Guide {
             return false;
 
         ItemPlacementContext ctx = getPlacementContext(player);
-        if (ctx == null || !ctx.canPlace()) return false;
-//        if (!state.currentState.getMaterial().isReplaceable()) return false;
+        if (ctx == null) return false;
+
+        if (!Configs.PRINT_IN_AIR.getBooleanValue() && !ctx.canPlace()) return false;
+
         if (!Configs.REPLACE_FLUIDS_SOURCE_BLOCKS.getBooleanValue()
                 && getProperty(state.currentState, FluidBlock.LEVEL).orElse(1) == 0)
             return false;
@@ -90,11 +92,11 @@ abstract public class PlacementGuide extends Guide {
                 .getPlacementState(ctx);
 
         if (resultState != null) {
-            if (!resultState.canPlaceAt(state.world, state.blockPos))
+            if (!Configs.PRINT_IN_AIR.getBooleanValue() && !resultState.canPlaceAt(state.world, state.blockPos))
                 return false;
             return !(currentState.getBlock() instanceof FluidBlock) || canPlaceInWater(resultState);
         } else {
-            return false;
+            return Configs.PRINT_IN_AIR.getBooleanValue();
         }
     }
 

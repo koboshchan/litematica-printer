@@ -48,26 +48,7 @@ public class GeneralPlacementGuide extends PlacementGuide {
     }
 
     private Optional<Direction> getValidSide(SchematicBlockState state) {
-        boolean printInAir = Configs.PRINT_IN_AIR.getBooleanValue();
-
         List<Direction> sides = getPossibleSides();
-
-        if (sides.isEmpty()) {
-            return Optional.empty();
-        }
-
-        if (printInAir && !getRequiresSupport()) {
-            // When printInAir is enabled, we can place directly without support
-            // But we should still respect the intended orientation for directional blocks
-            // Check if we have specific sides defined by the subclass (like for logs)
-            if (!sides.isEmpty()) {
-                // Use the first available side from the specific sides (e.g., axis-specific for logs)
-                return Optional.of(sides.get(0));
-            } else {
-                // Fallback to UP if no specific sides are defined
-                return Optional.of(Direction.UP);
-            }
-        }
 
         List<Direction> validSides = new ArrayList<>();
         for (Direction side : sides) {
@@ -89,7 +70,15 @@ public class GeneralPlacementGuide extends PlacementGuide {
             }
         }
 
-        return validSides.isEmpty() ? Optional.empty() : Optional.of(validSides.getFirst());
+        if (!validSides.isEmpty()) {
+            return Optional.of(validSides.get(0));
+        }
+
+        if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport()) {
+            return Optional.of(Direction.UP);
+        }
+
+        return Optional.empty();
     }
 
     protected boolean getUseShift(SchematicBlockState state) {
@@ -103,13 +92,6 @@ public class GeneralPlacementGuide extends PlacementGuide {
     }
 
     private Optional<Vec3d> getHitVector(SchematicBlockState state) {
-        boolean printInAir = Configs.PRINT_IN_AIR.getBooleanValue();
-
-        if (printInAir && !getRequiresSupport()) {
-            // For air placement, target the center of the target block position
-            return Optional.of(Vec3d.ofCenter(state.blockPos));
-        }
-
         return getValidSide(state).map(side -> Vec3d.ofCenter(state.blockPos)
                 .add(Vec3d.of(side.getVector()).multiply(0.5))
                 .add(getHitModifier(side)));
@@ -129,42 +111,41 @@ public class GeneralPlacementGuide extends PlacementGuide {
             Optional<Direction> lookDirection = getLookDirection();
             boolean requiresShift = getUseShift(state);
 
-            boolean printInAir = Configs.PRINT_IN_AIR.getBooleanValue();
-            BlockHitResult blockHitResult;
+            Direction side = validSide.get();
+            BlockPos clickPos = state.blockPos.offset(side);
+            Direction hitSide = side.getOpposite();
 
-            if (printInAir && !getRequiresSupport()) {
-                // For air placement, target the block position directly
-                // Use a hit side that allows the block to maintain its intended orientation
-                // The specific side depends on the block type and its intended orientation
-                Direction hitSide = validSide.get().getOpposite(); // Use the opposite of the valid side to maintain orientation
+            if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport() && state.world.getBlockState(clickPos).isReplaceable()) {
+                Printer.printDebug("AirPlace triggered for {} at {}", targetState.getBlock(), state.blockPos);
+                clickPos = state.blockPos;
+                hitSide = side;
 
-                // For pillar blocks like logs, we need to be more specific about the hit side
-                if (targetState.contains(net.minecraft.block.PillarBlock.AXIS)) {
-                    // For pillar blocks, use a side perpendicular to the intended axis
-                    Direction.Axis axis = targetState.get(net.minecraft.block.PillarBlock.AXIS);
-                    if (axis == Direction.Axis.Y) {
-                        hitSide = Direction.DOWN; // vertical log - hit from above
-                    } else if (axis == Direction.Axis.X) {
-                        hitSide = Direction.WEST; // horizontal log along X - hit from West/East side
-                    } else { // Z axis
-                        hitSide = Direction.NORTH; // horizontal log along Z - hit from North/South side
-                    }
-                } else {
-                    // For non-pillars, use DOWN as default to place normally
-                    hitSide = Direction.DOWN;
+                if (lookDirection.isEmpty()) {
+                    Vec3d diff = hitVec.get().subtract(player.getEyePos());
+                    double diffX = diff.x;
+                    double diffY = diff.y;
+                    double diffZ = diff.z;
+                    double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
+                    float yaw = (float) (Math.atan2(diffZ, diffX) * 180 / Math.PI) - 90;
+                    float pitch = (float) -(Math.atan2(diffY, diffXZ) * 180 / Math.PI);
+
+                    return new PrinterPlacementContext(player, new BlockHitResult(hitVec.get(), hitSide, clickPos, false),
+                            requiredItem.get(), requiredSlot, null, requiresShift) {
+                        @Override
+                        public float getPlayerYaw() { return yaw; }
+                        @Override
+                        public float getPlayerPitch() { return pitch; }
+                    };
                 }
-
-                blockHitResult = new BlockHitResult(hitVec.get(), hitSide, state.blockPos, false);
-            } else {
-                blockHitResult = new BlockHitResult(hitVec.get(), validSide.get().getOpposite(),
-                        state.blockPos.offset(validSide.get()), false);
             }
+
+            BlockHitResult blockHitResult = new BlockHitResult(hitVec.get(), hitSide,
+                    clickPos, false);
 
             return new PrinterPlacementContext(player, blockHitResult, requiredItem.get(), requiredSlot,
                     lookDirection.orElse(null), requiresShift);
         } catch (Exception e) {
-            Printer.logger.error("getPlacementContext(): Exception caught: {}", e.getMessage());
-            //e.printStackTrace();
+            e.printStackTrace();
             return null;
         }
     }

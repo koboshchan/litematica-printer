@@ -50,6 +50,14 @@ public class PrinterPlacementContext extends ItemPlacementContext {
         return lookDirection;
     }
 
+    public float getPlayerYaw() {
+        return getPlayer().getYaw();
+    }
+
+    public float getPlayerPitch() {
+        return getPlayer().getPitch();
+    }
+
     @Override
     public String toString() {
         return "PrinterPlacementContext{" +

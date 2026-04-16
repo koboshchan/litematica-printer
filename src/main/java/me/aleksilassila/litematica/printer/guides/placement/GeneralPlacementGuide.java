@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
+import me.aleksilassila.litematica.printer.Printer;
 import me.aleksilassila.litematica.printer.SchematicBlockState;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.implementation.PrinterPlacementContext;

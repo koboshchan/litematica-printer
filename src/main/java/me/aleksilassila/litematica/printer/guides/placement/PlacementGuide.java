@@ -87,7 +87,7 @@ abstract public class PlacementGuide extends Guide {
                 .getPlacementState(ctx);
 
         if (resultState != null) {
-            if (!resultState.canPlaceAt(state.world, state.blockPos))
+            if (!Configs.AIR_PLACE.getBooleanValue() && !resultState.canPlaceAt(state.world, state.blockPos))
                 return false;
             return !(currentState.getBlock() instanceof FluidBlock) || canPlaceInWater(resultState);
         } else {

@@ -49,16 +49,10 @@ public class GeneralPlacementGuide extends PlacementGuide {
     }
 
     private Optional<Direction> getValidSide(SchematicBlockState state) {
-        boolean airPlace = Configs.AIR_PLACE.getBooleanValue();
-
         List<Direction> sides = getPossibleSides();
 
         if (sides.isEmpty()) {
             return Optional.empty();
-        }
-
-        if (airPlace && !getRequiresSupport()) {
-            return Optional.of(Direction.UP);
         }
 
         List<Direction> validSides = new ArrayList<>();
@@ -81,7 +75,15 @@ public class GeneralPlacementGuide extends PlacementGuide {
             }
         }
 
-        return validSides.isEmpty() ? Optional.empty() : Optional.of(validSides.get(0));
+        if (!validSides.isEmpty()) {
+            return Optional.of(validSides.get(0));
+        }
+
+        if (Configs.AIR_PLACE.getBooleanValue() && !getRequiresSupport()) {
+            return Optional.of(Direction.UP);
+        }
+
+        return Optional.empty();
     }
 
     protected boolean getUseShift(SchematicBlockState state) {
@@ -114,12 +116,16 @@ public class GeneralPlacementGuide extends PlacementGuide {
             Optional<Direction> lookDirection = getLookDirection();
             boolean requiresShift = getUseShift(state);
 
-            BlockPos clickPos = state.blockPos.offset(validSide.get());
-            if (Configs.AIR_PLACE.getBooleanValue() && !getRequiresSupport()) {
+            Direction side = validSide.get();
+            BlockPos clickPos = state.blockPos.offset(side);
+            Direction hitSide = side.getOpposite();
+
+            if (Configs.AIR_PLACE.getBooleanValue() && !getRequiresSupport() && state.world.getBlockState(clickPos).isReplaceable()) {
                 clickPos = state.blockPos;
+                hitSide = side;
             }
 
-            BlockHitResult blockHitResult = new BlockHitResult(hitVec.get(), validSide.get().getOpposite(),
+            BlockHitResult blockHitResult = new BlockHitResult(hitVec.get(), hitSide,
                     clickPos, false);
 
             return new PrinterPlacementContext(player, blockHitResult, requiredItem.get(), requiredSlot,

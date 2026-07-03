@@ -74,15 +74,13 @@ public class PrepareAction extends Action {
         }
 
         if (Configs.ROTATE.getBooleanValue()) {
-            if (modifyPitch || modifyYaw) {
-                float yaw = modifyYaw ? this.yaw : player.getYRot();
-                float pitch = modifyPitch ? this.pitch : player.getXRot();
+            float yaw = modifyYaw ? this.yaw : context.getPlayerYaw();
+            float pitch = modifyPitch ? this.pitch : context.getPlayerPitch();
 
-                ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.PosRot(player.getX(), player.getY(), player.getZ(), yaw,
-                        pitch, player.onGround(), player.horizontalCollision);
+            ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.PosRot(player.getX(), player.getY(), player.getZ(), yaw,
+                    pitch, player.onGround(), player.horizontalCollision);
 
-                player.connection.send(packet);
-            }
+            player.connection.send(packet);
         }
 
         if (context.shouldSneak) {

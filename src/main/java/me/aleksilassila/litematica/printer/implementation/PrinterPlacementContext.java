@@ -61,6 +61,16 @@ public class PrinterPlacementContext extends BlockPlaceContext
         return lookDirection;
     }
 
+    public float getPlayerYaw()
+    {
+        return getPlayer().getYRot();
+    }
+
+    public float getPlayerPitch()
+    {
+        return getPlayer().getXRot();
+    }
+
     @Override
     public String toString()
     {

@@ -53,32 +53,6 @@ public class GuesserGuide extends GeneralPlacementGuide {
         if (contextCache != null && !Configs.PRINT_DEBUG.getBooleanValue())
             return contextCache;
 
-        // First, try air placement if enabled
-        boolean printInAir = Configs.PRINT_IN_AIR.getBooleanValue();
-        if (printInAir && !getRequiresSupport()) {
-            ItemStack requiredItem = getRequiredItem(player).orElse(ItemStack.EMPTY);
-            int slot = getRequiredItemStackSlot(player);
-
-            if (slot != -1) {
-                // Try different directions to find a successful placement
-                for (Direction side : directionsToTry) {
-                    Vec3 hitVec = Vec3.atCenterOf(state.blockPos);
-                    BlockHitResult hitResult = new BlockHitResult(hitVec, side.getOpposite(), state.blockPos, false);
-
-                    boolean requiresShift = getRequiresExplicitShift() || isInteractive(state.world.getBlockState(state.blockPos.relative(side.getOpposite())).getBlock());
-                    PrinterPlacementContext context = new PrinterPlacementContext(player, hitResult, requiredItem, slot, null, requiresShift);
-                    BlockState result = getRequiredItemAsBlock(player)
-                            .orElse(targetState.getBlock())
-                            .getStateForPlacement(context);
-
-                    if (result != null && (statesEqual(result, targetState) || correctChestPlacement(targetState, result))) {
-                        contextCache = context;
-                        return context;
-                    }
-                }
-            }
-        }
-
         ItemStack requiredItem = getRequiredItem(player).orElse(ItemStack.EMPTY);
         int slot = getRequiredItemStackSlot(player);
 
@@ -119,6 +93,23 @@ public class GuesserGuide extends GeneralPlacementGuide {
                     }
                 }
             }
+        }
+
+        if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport()) {
+            Direction side = Direction.UP;
+            Vec3 hitVec = Vec3.atCenterOf(state.blockPos).add(0, 0.5, 0);
+            BlockHitResult hitResult = new BlockHitResult(hitVec, side, state.blockPos, false);
+
+            Vec3 diff = hitVec.subtract(player.getEyePosition());
+            float yaw = (float) (Math.atan2(diff.z, diff.x) * 180 / Math.PI) - 90;
+            float pitch = (float) -(Math.atan2(diff.y, Math.sqrt(diff.x * diff.x + diff.z * diff.z)) * 180 / Math.PI);
+
+            return new PrinterPlacementContext(player, hitResult, requiredItem, slot, null, false) {
+                @Override
+                public float getPlayerYaw() { return yaw; }
+                @Override
+                public float getPlayerPitch() { return pitch; }
+            };
         }
 
         return null;

@@ -37,12 +37,66 @@ public class PrinterPlacementContext extends BlockPlaceContext
     @Override
     public @NonNull Direction getNearestLookingDirection()
     {
+        if (isRotationOverridden())
+        {
+            float origYaw = getPlayer().getYRot();
+            float origPitch = getPlayer().getXRot();
+            try
+            {
+                getPlayer().setYRot(getPlayerYaw());
+                getPlayer().setXRot(getPlayerPitch());
+                return super.getNearestLookingDirection();
+            }
+            finally
+            {
+                getPlayer().setYRot(origYaw);
+                getPlayer().setXRot(origPitch);
+            }
+        }
         return lookDirection == null ? super.getNearestLookingDirection() : lookDirection;
+    }
+
+    @Override
+    public @NonNull Direction[] getNearestLookingDirections()
+    {
+        if (isRotationOverridden())
+        {
+            float origYaw = getPlayer().getYRot();
+            float origPitch = getPlayer().getXRot();
+            try
+            {
+                getPlayer().setYRot(getPlayerYaw());
+                getPlayer().setXRot(getPlayerPitch());
+                return super.getNearestLookingDirections();
+            }
+            finally
+            {
+                getPlayer().setYRot(origYaw);
+                getPlayer().setXRot(origPitch);
+            }
+        }
+        return super.getNearestLookingDirections();
     }
 
     @Override
     public @NonNull Direction getNearestLookingVerticalDirection()
     {
+        if (isRotationOverridden())
+        {
+            float origYaw = getPlayer().getYRot();
+            float origPitch = getPlayer().getXRot();
+            try
+            {
+                getPlayer().setYRot(getPlayerYaw());
+                getPlayer().setXRot(getPlayerPitch());
+                return super.getNearestLookingVerticalDirection();
+            }
+            finally
+            {
+                getPlayer().setYRot(origYaw);
+                getPlayer().setXRot(origPitch);
+            }
+        }
         if (lookDirection != null && lookDirection.getOpposite() == super.getNearestLookingVerticalDirection())
         {
             return lookDirection;
@@ -53,6 +107,22 @@ public class PrinterPlacementContext extends BlockPlaceContext
     @Override
     public @NonNull Direction getHorizontalDirection()
     {
+        if (isRotationOverridden())
+        {
+            float origYaw = getPlayer().getYRot();
+            float origPitch = getPlayer().getXRot();
+            try
+            {
+                getPlayer().setYRot(getPlayerYaw());
+                getPlayer().setXRot(getPlayerPitch());
+                return super.getHorizontalDirection();
+            }
+            finally
+            {
+                getPlayer().setYRot(origYaw);
+                getPlayer().setXRot(origPitch);
+            }
+        }
         if (lookDirection == null || !lookDirection.getAxis().isHorizontal())
         {
             return super.getHorizontalDirection();

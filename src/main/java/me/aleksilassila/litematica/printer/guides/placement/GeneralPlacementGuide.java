@@ -137,6 +137,8 @@ public class GeneralPlacementGuide extends PlacementGuide {
                         public float getPlayerYaw() { return yaw; }
                         @Override
                         public float getPlayerPitch() { return pitch; }
+                        @Override
+                        public boolean isRotationOverridden() { return true; }
                     };
                 }
             }

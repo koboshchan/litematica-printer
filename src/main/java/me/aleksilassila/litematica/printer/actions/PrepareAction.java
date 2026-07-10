@@ -25,20 +25,27 @@ public class PrepareAction extends Action {
         this.context = context;
         Direction lookDirection = context.lookDirection;
 
-        if (lookDirection != null && lookDirection.getAxis().isHorizontal()) {
-            this.yaw = lookDirection.toYRot();
+        if (context.isRotationOverridden()) {
+            this.modifyYaw = true;
+            this.modifyPitch = true;
+            this.yaw = context.getPlayerYaw();
+            this.pitch = context.getPlayerPitch();
         } else {
-            this.modifyYaw = false;
-        }
+            if (lookDirection != null && lookDirection.getAxis().isHorizontal()) {
+                this.yaw = lookDirection.toYRot();
+            } else {
+                this.modifyYaw = false;
+            }
 
-        if (lookDirection == Direction.UP) {
-            this.pitch = -90;
-        } else if (lookDirection == Direction.DOWN) {
-            this.pitch = 90;
-        } else if (lookDirection != null) {
-            this.pitch = 0;
-        } else {
-            this.modifyPitch = false;
+            if (lookDirection == Direction.UP) {
+                this.pitch = -90;
+            } else if (lookDirection == Direction.DOWN) {
+                this.pitch = 90;
+            } else if (lookDirection != null) {
+                this.pitch = 0;
+            } else {
+                this.modifyPitch = false;
+            }
         }
     }
 

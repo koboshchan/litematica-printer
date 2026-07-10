@@ -71,6 +71,12 @@ public class PrinterPlacementContext extends BlockPlaceContext
         return getPlayer().getXRot();
     }
 
+    public boolean isRotationOverridden()
+    {
+        return false;
+    }
+
+
     @Override
     public String toString()
     {

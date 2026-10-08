@@ -133,17 +133,19 @@ public class PrinterPlacementContext extends BlockPlaceContext
 
     public float getPlayerYaw()
     {
-        return getPlayer().getYRot();
+        return lookDirection != null && lookDirection.getAxis().isHorizontal()
+                ? lookDirection.toYRot() : getPlayer().getYRot();
     }
 
     public float getPlayerPitch()
     {
-        return getPlayer().getXRot();
+        return lookDirection == Direction.UP ? -90 : lookDirection == Direction.DOWN ? 90
+                : lookDirection != null ? 0 : getPlayer().getXRot();
     }
 
     public boolean isRotationOverridden()
     {
-        return false;
+        return lookDirection != null;
     }
 
 

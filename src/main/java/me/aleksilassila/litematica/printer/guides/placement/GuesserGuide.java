@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
  * by brute forcing the correct hit vector and look a direction.
  */
 public class GuesserGuide extends GeneralPlacementGuide {
-    private PrinterPlacementContext contextCache = null;
+
 
     protected static Direction[] directionsToTry = new Direction[]{
             Direction.NORTH,
@@ -50,9 +50,6 @@ public class GuesserGuide extends GeneralPlacementGuide {
     @Nullable
     @Override
     public PrinterPlacementContext getPlacementContext(LocalPlayer player) {
-        if (contextCache != null && !Configs.PRINT_DEBUG.getBooleanValue())
-            return contextCache;
-
         ItemStack requiredItem = getRequiredItem(player).orElse(ItemStack.EMPTY);
         int slot = getRequiredItemStackSlot(player);
 
@@ -88,30 +85,48 @@ public class GuesserGuide extends GeneralPlacementGuide {
 
                     if (result != null
                             && (statesEqual(result, targetState) || correctChestPlacement(targetState, result))) {
-                        contextCache = context;
+
                         return context;
                     }
                 }
             }
         }
 
-        if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport()) {
-            Direction side = Direction.UP;
-            Vec3 hitVec = Vec3.atCenterOf(state.blockPos).add(0, 0.5, 0);
-            BlockHitResult hitResult = new BlockHitResult(hitVec, side, state.blockPos, false);
-
-            Vec3 diff = hitVec.subtract(player.getEyePosition());
-            float yaw = (float) (Math.atan2(diff.z, diff.x) * 180 / Math.PI) - 90;
-            float pitch = (float) -(Math.atan2(diff.y, Math.sqrt(diff.x * diff.x + diff.z * diff.z)) * 180 / Math.PI);
-
-            return new PrinterPlacementContext(player, hitResult, requiredItem, slot, null, false) {
-                @Override
-                public float getPlayerYaw() { return yaw; }
-                @Override
-                public float getPlayerPitch() { return pitch; }
-                @Override
-                public boolean isRotationOverridden() { return true; }
-            };
+        if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport()
+                && state.currentState.canBeReplaced()) {
+            // Simulate air clicks too, instead of aiming blindly at the target.
+            // Six faces cover axis/half; 16 yaw steps cover rotation properties.
+            for (Direction hitSide : directionsToTry) {
+                Vec3 normal = Vec3.atLowerCornerOf(hitSide.getUnitVec3i());
+                Vec3 faceCenter = Vec3.atCenterOf(state.blockPos).add(normal.scale(0.5));
+                Vec3 mask = new Vec3(normal.x == 0 ? 1 : 0, normal.y == 0 ? 1 : 0,
+                        normal.z == 0 ? 1 : 0);
+                for (Vec3 offset : hitVecsToTry) {
+                    BlockHitResult hit = new BlockHitResult(faceCenter.add(offset.multiply(mask)),
+                            hitSide, state.blockPos, false);
+                    for (int yawStep = 0; yawStep < 16; yawStep++) {
+                        for (float pitch : new float[]{0, -90, 90}) {
+                            final float yaw = yawStep * 22.5f;
+                            PrinterPlacementContext context = new PrinterPlacementContext(player, hit,
+                                    requiredItem, slot, null, getRequiresExplicitShift()) {
+                                @Override
+                                public float getPlayerYaw() { return yaw; }
+                                @Override
+                                public float getPlayerPitch() { return pitch; }
+                                @Override
+                                public boolean isRotationOverridden() { return true; }
+                            };
+                            BlockState result = getRequiredItemAsBlock(player).orElse(targetState.getBlock())
+                                    .getStateForPlacement(context);
+                            if (result != null && (statesEqual(result, targetState)
+                                    || correctChestPlacement(targetState, result))) {
+        
+                                return context;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return null;

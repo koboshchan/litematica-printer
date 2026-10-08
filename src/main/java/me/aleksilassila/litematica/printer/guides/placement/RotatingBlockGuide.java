@@ -1,13 +1,13 @@
 package me.aleksilassila.litematica.printer.guides.placement;
 
-import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
+
 import me.aleksilassila.litematica.printer.SchematicBlockState;
-import me.aleksilassila.litematica.printer.actions.Action;
-import me.aleksilassila.litematica.printer.actions.PrepareAction;
+
+
 import me.aleksilassila.litematica.printer.implementation.PrinterPlacementContext;
 
 import net.minecraft.client.player.LocalPlayer;
@@ -38,23 +38,26 @@ public class RotatingBlockGuide extends GeneralPlacementGuide {
     }
 
     @Override
-    public @Nonnull List<Action> execute(LocalPlayer player) {
-        PrinterPlacementContext ctx = getPlacementContext(player);
-
-        if (ctx == null)
-            return new ArrayList<>();
+    public PrinterPlacementContext getPlacementContext(LocalPlayer player) {
+        PrinterPlacementContext base = super.getPlacementContext(player);
+        if (base == null)
+            return null;
 
         int rotation = getProperty(state.targetState, BlockStateProperties.ROTATION_16).orElse(0);
         if (targetState.getBlock() instanceof BannerBlock || targetState.getBlock() instanceof StandingSignBlock) {
             rotation = (rotation + 8) % 16;
         }
-
-        int distTo0 = rotation > 8 ? 16 - rotation : rotation;
-        float yaw = Math.round(distTo0 / 8f * 180f * (rotation > 8 ? -1 : 1));
-
-        List<Action> actions = super.execute(player);
-        actions.set(0, new PrepareAction(ctx, yaw, 0));
-
-        return actions;
+        final float yaw = rotation * 22.5f;
+        // Put the proposed rotation in the context itself so simulation,
+        // PrepareAction and local prediction all use the same angle.
+        return new PrinterPlacementContext(player, base.hitResult, base.getItemInHand(),
+                base.requiredItemSlot, base.lookDirection, base.shouldSneak) {
+            @Override
+            public float getPlayerYaw() { return yaw; }
+            @Override
+            public float getPlayerPitch() { return 0; }
+            @Override
+            public boolean isRotationOverridden() { return true; }
+        };
     }
 }

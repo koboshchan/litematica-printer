@@ -118,9 +118,10 @@ public class GeneralPlacementGuide extends PlacementGuide {
             if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport() && state.world.getBlockState(clickPos).canBeReplaced()) {
                 Printer.printDebug("AirPlace triggered for {} at {}", targetState.getBlock(), state.blockPos);
                 clickPos = state.blockPos;
-                // Keep the face and face point of a supported click. Inverting
-                // the face changes slab halves and pillar axes.
+                // Keep the declared face, but move the point onto that face of
+                // the target rather than the opposite face of its neighbor.
                 hitSide = side.getOpposite();
+                hitVec = Optional.of(hitVec.get().subtract(Vec3.atLowerCornerOf(side.getUnitVec3i())));
 
             }
 

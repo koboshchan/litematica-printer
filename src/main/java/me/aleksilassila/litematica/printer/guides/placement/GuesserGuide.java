@@ -56,7 +56,8 @@ public class GuesserGuide extends GeneralPlacementGuide {
         if (slot == -1)
             return null;
 
-        for (Direction lookDirection : directionsToTry) {
+        for (Direction lookDirection : Configs.ROTATE.getBooleanValue()
+                ? directionsToTry : new Direction[]{null}) {
             for (Direction side : directionsToTry) {
                 BlockPos neighborPos = state.blockPos.relative(side);
                 BlockState neighborState = state.world.getBlockState(neighborPos);
@@ -104,9 +105,10 @@ public class GuesserGuide extends GeneralPlacementGuide {
                 for (Vec3 offset : hitVecsToTry) {
                     BlockHitResult hit = new BlockHitResult(faceCenter.add(offset.multiply(mask)),
                             hitSide, state.blockPos, false);
-                    for (int yawStep = 0; yawStep < 16; yawStep++) {
-                        for (float pitch : new float[]{0, -90, 90}) {
-                            final float yaw = yawStep * 22.5f;
+                    for (int yawStep = 0; yawStep < (Configs.ROTATE.getBooleanValue() ? 16 : 1); yawStep++) {
+                        for (float pitch : Configs.ROTATE.getBooleanValue() ? new float[]{0, -90, 90}
+                                : new float[]{player.getXRot()}) {
+                            final float yaw = Configs.ROTATE.getBooleanValue() ? yawStep * 22.5f : player.getYRot();
                             PrinterPlacementContext context = new PrinterPlacementContext(player, hit,
                                     requiredItem, slot, null, getRequiresExplicitShift()) {
                                 @Override

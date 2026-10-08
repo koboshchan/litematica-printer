@@ -75,7 +75,7 @@ public class GeneralPlacementGuide extends PlacementGuide {
         }
 
         if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport()) {
-            return Optional.of(Direction.UP);
+            return sides.stream().findFirst();
         }
 
         return Optional.empty();
@@ -118,29 +118,10 @@ public class GeneralPlacementGuide extends PlacementGuide {
             if (Configs.PRINT_IN_AIR.getBooleanValue() && !getRequiresSupport() && state.world.getBlockState(clickPos).canBeReplaced()) {
                 Printer.printDebug("AirPlace triggered for {} at {}", targetState.getBlock(), state.blockPos);
                 clickPos = state.blockPos;
-                hitSide = side;
+                // Keep the face and face point of a supported click. Inverting
+                // the face changes slab halves and pillar axes.
+                hitSide = side.getOpposite();
 
-                if (lookDirection.isEmpty()) {
-                    Vec3 diff = hitVec.get().subtract(player.getEyePosition());
-                    double diffX = diff.x;
-                    double diffY = diff.y;
-                    double diffZ = diff.z;
-                    double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
-                    float yaw = (float) (Math.atan2(diffZ, diffX) * 180 / Math.PI) - 90;
-                    float pitch = (float) -(Math.atan2(diffY, diffXZ) * 180 / Math.PI);
-
-                    final BlockPos finalClickPos = clickPos;
-                    final Direction finalHitSide = hitSide;
-                    return new PrinterPlacementContext(player, new BlockHitResult(hitVec.get(), finalHitSide, finalClickPos, false),
-                            requiredItem.get(), requiredSlot, null, requiresShift) {
-                        @Override
-                        public float getPlayerYaw() { return yaw; }
-                        @Override
-                        public float getPlayerPitch() { return pitch; }
-                        @Override
-                        public boolean isRotationOverridden() { return true; }
-                    };
-                }
             }
 
             BlockHitResult blockHitResult = new BlockHitResult(hitVec.get(), hitSide, clickPos, false);

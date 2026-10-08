@@ -32,6 +32,9 @@ public class PrinterPlacementContext extends BlockPlaceContext
         this.shouldSneak = requiresSneaking;
         this.hitResult = hitResult;
         this.requiredItemSlot = requiredItemSlot;
+        // The superclass calls replacement checks before our sneak flag is set.
+        this.replaceClicked = true;
+        this.replaceClicked = getLevel().getBlockState(hitResult.getBlockPos()).canBeReplaced(this);
     }
 
     @Override
@@ -129,6 +132,18 @@ public class PrinterPlacementContext extends BlockPlaceContext
         }
 
         return lookDirection;
+    }
+
+    @Override
+    public float getRotation()
+    {
+        return getPlayerYaw();
+    }
+
+    @Override
+    public boolean isSecondaryUseActive()
+    {
+        return shouldSneak;
     }
 
     public float getPlayerYaw()

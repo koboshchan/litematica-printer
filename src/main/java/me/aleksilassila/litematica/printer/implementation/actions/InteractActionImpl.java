@@ -16,7 +16,7 @@ public class InteractActionImpl extends InteractAction {
     protected void interact(Minecraft client, LocalPlayer player, InteractionHand hand, BlockHitResult hitResult) {
         if (client.gameMode != null) {
             client.gameMode.useItemOn(player, hand, hitResult);
-            client.gameMode.useItem(player, hand);
+
         }
     }
 }

@@ -20,6 +20,10 @@ abstract public class InteractAction extends Action {
 
     protected abstract void interact(Minecraft client, LocalPlayer player, InteractionHand hand, BlockHitResult hitResult);
 
+    protected boolean shouldSneak(LocalPlayer player) {
+        return context.shouldSneak;
+    }
+
     @Override
     public void send(Minecraft client, LocalPlayer player) {
         // Input is refreshed every tick, so sneak must be sent at the actual click,
@@ -31,10 +35,10 @@ abstract public class InteractAction extends Action {
         float originalPitch = player.getXRot();
         Input clickInput = new Input(originalInput.forward(), originalInput.backward(),
                 originalInput.left(), originalInput.right(), originalInput.jump(),
-                context.shouldSneak, originalInput.sprint());
+                shouldSneak(player), originalInput.sprint());
         try {
             player.input.keyPresses = clickInput;
-            player.setShiftKeyDown(context.shouldSneak);
+            player.setShiftKeyDown(clickInput.shift());
             player.connection.send(new ServerboundPlayerInputPacket(clickInput));
             if (Configs.ROTATE.getBooleanValue()) {
                 PrepareAction rotation = new PrepareAction(context);

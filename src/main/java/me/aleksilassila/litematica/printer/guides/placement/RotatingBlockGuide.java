@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 import me.aleksilassila.litematica.printer.SchematicBlockState;
+import me.aleksilassila.litematica.printer.config.Configs;
+import net.minecraft.world.level.block.state.BlockState;
 
 
 import me.aleksilassila.litematica.printer.implementation.PrinterPlacementContext;
@@ -37,17 +39,29 @@ public class RotatingBlockGuide extends GeneralPlacementGuide {
         return true;
     }
 
+    static float placementYaw(BlockState target) {
+        // Wall variants have FACING, not ROTATION_16. Defaulting the latter to
+        // zero made every wall sign, banner and skull look south.
+        if (target.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return target.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite().toYRot();
+        }
+        int rotation = target.getValue(BlockStateProperties.ROTATION_16);
+        if (target.getBlock() instanceof BannerBlock || target.getBlock() instanceof StandingSignBlock) {
+            rotation = (rotation + 8) % 16;
+        }
+        return rotation * 22.5f;
+    }
+
     @Override
     public PrinterPlacementContext getPlacementContext(LocalPlayer player) {
         PrinterPlacementContext base = super.getPlacementContext(player);
         if (base == null)
             return null;
 
-        int rotation = getProperty(state.targetState, BlockStateProperties.ROTATION_16).orElse(0);
-        if (targetState.getBlock() instanceof BannerBlock || targetState.getBlock() instanceof StandingSignBlock) {
-            rotation = (rotation + 8) % 16;
-        }
-        final float yaw = rotation * 22.5f;
+        if (!Configs.ROTATE.getBooleanValue())
+            return base;
+
+        final float yaw = placementYaw(targetState);
         // Put the proposed rotation in the context itself so simulation,
         // PrepareAction and local prediction all use the same angle.
         return new PrinterPlacementContext(player, base.hitResult, base.getItemInHand(),

@@ -136,8 +136,8 @@ abstract public class PlacementGuide extends Guide
             return actions;
         }
 		actions.add(new PrepareAction(ctx));
-		actions.add(new InteractActionImpl(ctx));
-return actions;
+		actions.add(new InteractActionImpl(ctx, true));
+		return actions;
 	}
 
 	protected static boolean canBeClicked(Level world, BlockPos pos)

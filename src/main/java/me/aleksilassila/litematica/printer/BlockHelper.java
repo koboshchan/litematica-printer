@@ -8,13 +8,14 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.piston.MovingPistonBlock;
 
 abstract public class BlockHelper
 {
 	public static List<Class<?>> interactiveBlocks = new ArrayList<>(Arrays.asList(
 			AbstractChestBlock.class, AbstractFurnaceBlock.class, CraftingTableBlock.class,
 			LeverBlock.class,
-			DoorBlock.class, TrapDoorBlock.class, BedBlock.class, RedstoneWireBlock.class,
+			DoorBlock.class, TrapDoorBlock.class, AbstractBedBlock.class, RedstoneWireBlock.class,
 			ScaffoldingBlock.class,
 			HopperBlock.class, EnchantingTableBlock.class, NoteBlock.class, JukeboxBlock.class,
 			CakeBlock.class,
@@ -23,7 +24,17 @@ abstract public class BlockHelper
 			DropperBlock.class, DispenserBlock.class, ShulkerBoxBlock.class, LecternBlock.class,
 			FlowerPotBlock.class, BarrelBlock.class, BellBlock.class, SmithingTableBlock.class,
 			LoomBlock.class, CartographyTableBlock.class, GrindstoneBlock.class,
-			StonecutterBlock.class, SignBlock.class, AbstractCandleBlock.class));
+			StonecutterBlock.class, SignBlock.class, AbstractCandleBlock.class,
+			// Audited against 26.3 useWithoutItem/useItemOn overrides. Keep these here,
+			// not in a subclass initializer: placement can access this list first.
+			ButtonBlock.class, CrafterBlock.class, ChiseledBookShelfBlock.class,
+			DecoratedPotBlock.class, RespawnAnchorBlock.class, DaylightDetectorBlock.class,
+			ComposterBlock.class, AbstractCauldronBlock.class, BeehiveBlock.class,
+			CampfireBlock.class, ShelfBlock.class, VaultBlock.class,
+			CaveVinesBlock.class, CaveVinesPlantBlock.class, SweetBerryBushBlock.class,
+			FenceBlock.class, CopperGolemStatueBlock.class, PumpkinBlock.class,
+			RedStoneOreBlock.class, TntBlock.class, JigsawBlock.class, StructureBlock.class,
+			LightBlock.class, TestBlock.class, TestInstanceBlock.class, MovingPistonBlock.class));
 
 	public static final Item[] SHOVEL_ITEMS = new Item[]{
 			Items.NETHERITE_SHOVEL,

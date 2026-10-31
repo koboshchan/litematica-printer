@@ -1,6 +1,9 @@
 package me.aleksilassila.litematica.printer.implementation.actions;
 
 import me.aleksilassila.litematica.printer.implementation.PrinterPlacementContext;
+import me.aleksilassila.litematica.printer.BlockHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.Arrays;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.client.player.LocalPlayer;
@@ -33,11 +36,32 @@ class InteractActionImplTest {
         InteractActionImpl placement = new InteractActionImpl(context, true);
         InteractActionImpl interaction = new InteractActionImpl(context);
         assertFalse(placement.shouldSneak(player));
-        for (Block support : new Block[]{Blocks.CHEST, Blocks.FURNACE, Blocks.OAK_DOOR,
-                Blocks.BARREL, Blocks.CRAFTER, Blocks.STONE_BUTTON}) {
+        for (Block support : BuiltInRegistries.BLOCK) {
+            if (!BlockHelper.interactiveBlocks.stream().anyMatch(type -> type.isInstance(support))) {
+                continue;
+            }
             when(level.getBlockState(BlockPos.ZERO)).thenReturn(support.defaultBlockState());
             assertTrue(placement.shouldSneak(player), support.toString());
             assertFalse(interaction.shouldSneak(player), support.toString());
+        }
+        for (Block support : new Block[]{Blocks.STONE, Blocks.COPPER_BULB.asList().getFirst(), Blocks.TRIAL_SPAWNER}) {
+            when(level.getBlockState(BlockPos.ZERO)).thenReturn(support.defaultBlockState());
+            assertFalse(placement.shouldSneak(player), support.toString());
+        }
+    }
+
+    @Test void everyVanillaUseOverrideIsCoveredWithoutSubclassInitialization() {
+        for (Block block : BuiltInRegistries.BLOCK) {
+            boolean overridesUse = false;
+            for (Class<?> type = block.getClass(); type != Block.class; type = type.getSuperclass()) {
+                overridesUse |= Arrays.stream(type.getDeclaredMethods())
+                        .anyMatch(method -> method.getName().equals("useWithoutItem")
+                                || method.getName().equals("useItemOn"));
+            }
+            if (overridesUse) {
+                assertTrue(BlockHelper.interactiveBlocks.stream().anyMatch(type -> type.isInstance(block)),
+                        () -> "Missing right-click handler for " + BuiltInRegistries.BLOCK.getKey(block));
+            }
         }
     }
 }
